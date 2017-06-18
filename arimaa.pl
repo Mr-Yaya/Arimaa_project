@@ -20,19 +20,19 @@
 %position
 % Piece2 is placed on the top of Piece1
 
-up([X1,Y1],[X2,Y2]) :- Y is Y1-1, X2 = X1, Y2 = Y.
+up([X1,Y1],[X2,Y2]) :- Y is Y1-1, X2 = X1, Y2 = Y, Y>=0.
 
 % Piece2 is placed below Piece1
 
-down([X1,Y1],[X2,Y2]) :-  Y is Y1+1, X2 = X1, Y2 = Y.
+down([X1,Y1],[X2,Y2]) :-  Y is Y1+1, X2 = X1, Y2 = Y, Y<9.
 
 % Piece2 is placed to the right of Piece1
 
-right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1.
+right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1, X<9.
 
 % Piece2 is placed at the left of Piece1
 
-left([X1,Y1],[X2,Y2]) :-  X is X1-1, X2 = X, Y2 = Y1.
+left([X1,Y1],[X2,Y2]) :-  X is X1-1, X2 = X, Y2 = Y1, X>=0.
 
 %neighbor of X1,Y1 
 
@@ -107,37 +107,25 @@ stronger(Piece1,Piece2) :- strength(Piece1,S1) , strength(Piece2,S2) , S1 > S2.
 
 % moove ok from X1,Y1 to X2,Y2
 
-ok_moove([[X, Y],[W,Z]], Moves):- 
-					Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[4,4,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[5,4,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
-					element2([X,Y,Piece,Team],Board),
-					empty(W,Z,Board),
+ok_moove([[X, Y],[W,Z]], Moves,Board):- 
+					element([X,Y,Piece,Team],Board),
+					neighbor(X,Y,W,Z),
+					empty(Board,W,Z),
 					rabbit(Piece),
-					neighbor2(X,Y,W,Z),
 					\+trap([W,Z]),
 					\+frozen(X,Y,Piece,Board),
 					\+up([X,Y],[W,Z]),
 					\+member([[X,Y],[W,Z]],Moves)
 					.
 
-ok_moove([[X, Y],[W,Z]], Moves):- 
-					Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[4,4,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[5,4,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
-					element2([X,Y,Piece,Team],Board),
+ok_moove([[X, Y],[W,Z]], Moves,Board):- 
+					element([X,Y,Piece,Team],Board),
+					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
-					neighbor2(X,Y,W,Z),
 					\+trap([W,Z]),
 					\+frozen(X,Y,Piece,Board),
 					\+member([[X,Y],[W,Z]],Moves)
 					.
-%possible moove
-
-possible_moove(X,Y,listMoove,NewListMoove) :- 
-					Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[4,4,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[5,4,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
-					element2([X,Y,_,_],Board),
-					neighbor(X,Y,W,Z),
-					empty(Board,W,Z),
-					Moove = [[X,Y],[W,Z]],
-					add(Moove,listMoove,Moove).
-
 
 %ajout list
 add(X,[],L1) :- L1 = [X],!.
@@ -183,15 +171,10 @@ element2(X,[_|R]) :- element2(X,R).
 
 %get all possible moove
 
-getAllMoves([X,Y],Moves,okMooves):- 
-											Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
-											setof(
-												([X,Y]), 
-												ok_moove([X, Y], Moves, Board), 
-												okMooves).
+getAllMoves([X,Y],ListMoove,OkMooves,Board):- setof([[X,Y],[W,Z]],ok_moove([[X,Y],[W,Z]],ListMoove,Board),OkMooves).
 
-add_moves(_,_,5) :- !.
-add_moves(Moves,Board,NB) :- getAllMoves(_,Moves,[T|Q],Board),
+add_moves(_,_,5).
+add_moves(Moves,Board,NB) :- getAllMoves([X,Y],Moves,[T|Q],Board),
 							NB1 is NB + 1,
 							append(T,Moves,NewMoves),
 							add_moves(NewMoves,Board,NB1).
@@ -202,9 +185,5 @@ get_moves(Moves, Gamestate, Board):- add_moves(Moves,Board,0),!.
 
 %test function
 
-test(X,Y,Moove,listMoove,NewListMoove):- 
-				Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[4,4,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[5,4,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
-				neighbor(X,Y,W,Z),
-				empty(Board,W,Z),
-				Moove = [[X,Y],[W,Z]],
-				add(Moove,listMoove,NewListMoove).
+test(X,Y,ListMoove,NewListMoove):- 
+				Board = [[2,2,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[4,4,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[5,4,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]].
