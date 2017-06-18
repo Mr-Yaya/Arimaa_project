@@ -1,4 +1,4 @@
-:- module(bot,
+%:- module(bot,
       [  get_moves/3
       ]).
 	
@@ -9,41 +9,39 @@
 
 % Exemple of variable
 % gamestate: [side, [captured pieces] ] (e.g. [silver, [ [0,1,rabbit,silver],[0,2,horse,silver] ]) 
-% board: [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]
+
+%set_board(board) :- Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]].
 
 % Call exemple:
-%get_moves(Moves, [silver, []], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
+% get_moves(Moves, [silver, []], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
 
-%Moves :[[[0,0],[1,0]],[[1,0],[2,0]]]
-
-% [X,Y,Piece,Team]
-
-%Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]].
+% default call
 
 %position
 % Piece2 is placed on the top of Piece1
 
-up(X1,Y1,X2,Y2) :- Y is Y1-1, X2 = X1, Y2 = Y.
+up([X1,Y1],[X2,Y2]) :- Y is Y1-1, X2 = X1, Y2 = Y.
 
 % Piece2 is placed below Piece1
 
-down(X1,Y1,X2,Y2) :-  Y is Y1+1, X2 = X1, Y2 = Y.
+down([X1,Y1],[X2,Y2]) :-  Y is Y1+1, X2 = X1, Y2 = Y.
 
 % Piece2 is placed to the right of Piece1
 
-right(X1,Y1,X2,Y2) :- X is X1+1, X2 = X, Y2 = Y1.
+right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1.
 
 % Piece2 is placed at the left of Piece1
 
-left(X1,Y1,X2,Y2) :-  X is X1-1, X2 = X, Y2 = Y1.
+left([X1,Y1],[X2,Y2]) :-  X is X1-1, X2 = X, Y2 = Y1.
 
 %neighbor of X1,Y1 
 
-neighbor(X1,Y1,X2,Y2) :- up(X1,Y1,X2,Y2).
-neighbor(X1,Y1,X2,Y2) :- down(X1,Y1,X2,Y2).
-neighbor(X1,Y1,X2,Y2) :- left(X1,Y1,X2,Y2).
-neighbor(X1,Y1,X2,Y2) :- right(X1,Y1,X2,Y2).
+neighbor([X1,Y1],[X2,Y2]) :- up([X1,Y1],[X2,Y2]).
+neighbor([X1,Y1],[X2,Y2]) :- down([X1,Y1],[X2,Y2]).
+neighbor([X1,Y1],[X2,Y2]) :- left([X1,Y1],[X2,Y2]).
+neighbor([X1,Y1],[X2,Y2]) :- right([X1,Y1],[X2,Y2]).
 
+% the first neighbor of x1,Y1
 neighbor2(X1,Y1,X2,Y2) :- up(X1,Y1,X2,Y2),!.
 neighbor2(X1,Y1,X2,Y2) :- down(X1,Y1,X2,Y2),!.
 neighbor2(X1,Y1,X2,Y2) :- left(X1,Y1,X2,Y2),!.
@@ -65,14 +63,16 @@ enemy_neighbor(X,Y,Enemy,Team) :-
 
 %empty place
 
-empty(X,Y) :- \+element([X,Y,_,_],Board).
+empty(X,Y,Board) :- 
+	\+element([X,Y,_,_],Board).
+
 
 %trap position
 
-trap(2,2).
-trap(2,5).
-trap(5,2).
-trap(5,5).
+trap([2,2]).
+trap([2,5]).
+trap([5,2]).
+trap([5,5]).
 
 %Predicat to name a Piece
 
@@ -107,24 +107,27 @@ stronger(Piece1,Piece2) :- strength(Piece1,S1) , strength(Piece2,S2) , S1 > S2.
 
 % moove ok from X1,Y1 to X2,Y2
 
-ok_moove([[X, Y],[W,Z]], Moves, Board):- 
+ok_moove([[X, Y],[W,Z]], Moves):- 
 					Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
-					empty(W,Z),
+					element2([X,Y,Piece,Team],Board),
+					empty(W,Z,Board),
 					rabbit(Piece),
 					neighbor2(X,Y,W,Z),
 					\+trap(W,Z),
 					\+frozen(X,Y,Piece),
 					\+up(X,Y,W,Z),
-					\+member([[X,Y],[W,Z]],Moves).
+					\+member([[X,Y],[W,Z]],Moves)
+					.
 
-ok_moove([[X, Y],[W,Z]], Moves, Board):- 
-Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
+ok_moove([[X, Y],[W,Z]], Moves):- 
+					Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],
 					element2([X,Y,Piece,Team],Board),
-					empty(W,Z),
+					empty(W,Z,Board),
 					neighbor2(X,Y,W,Z),
 					\+trap(W,Z),
 					\+frozen(X,Y,Piece),
-					\+member([[X,Y],[W,Z]],Moves).
+					\+member([[X,Y],[W,Z]],Moves)
+					.
 
 %bad position
 
