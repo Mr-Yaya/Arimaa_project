@@ -26,11 +26,11 @@ up([X1,Y1],[X2,Y2]) :- Y is Y1-1, X2 = X1, Y2 = Y, Y>=0.
 
 % Piece2 is placed below Piece1
 
-down([X1,Y1],[X2,Y2]) :-  Y is Y1+1, X2 = X1, Y2 = Y, Y<9.
+down([X1,Y1],[X2,Y2]) :-  Y is Y1+1, X2 = X1, Y2 = Y, Y<8.
 
 % Piece2 is placed to the right of Piece1
 
-right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1, X<9.
+right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1, X<8.
 
 % Piece2 is placed at the left of Piece1
 
@@ -168,21 +168,19 @@ element(X,[_|R]) :- element(X,R).
 getAllMoves([X,Y],ListMoove,OkMooves,Board):- setof([[X,Y],[W,Z]],ok_moove([[X,Y],[W,Z]],ListMoove,Board),OkMooves).
 
 
-add_moves(_,4,Board):- !.
-add_moves(Moves,NB,Board) :- 
+%add_moves(_,4,Board):- !.
+add_moves(Moves,LM,NB,Board) :- 
 							getAllMoves([X,Y],Moves,[T|Q],Board),
 							NB1 is NB + 1,
-							append([T],Moves,ListMoves),
-							add_moves(ListMoves,NB1,Board)
-
+							append([T],Moves,LM),
+							add_moves(LM,NLM,NB1,Board)
 							.
-add_moves(Moves,0,Board) :- 
+add_moves(Moves,LM,0,Board) :- 
 					Moves = [],
 					getAllMoves([X,Y],Moves,[T|Q],Board),
 					NB1 = 1,
-					append([T],Moves,ListMoves),
-					add_moves(ListMoves,NB1,Board)
-					.
+					append([T],Moves,LM),
+					add_moves(LM,,NLM,NB1,Board).
 
 % default call
 
@@ -190,5 +188,13 @@ get_moves(Moves, Gamestate, Board):- add_moves(Moves,Board,0),!.
 
 %test function
 
-test(Moves,0):- 
-				board(Board),Moves = [],getAllMoves([X,Y],Moves,[T|Q],Board),NB1 = 1,add(T,Moves,ListMoves),add_moves(ListMoves,NB1).
+test([],_,_,[]).
+test(Moves,OldMoves,I,Board):- 
+			I < 5,
+			getAllMoves([X,Y],Moves,[T|Q],Board),
+			Nouveau_I is I + 1,
+			append([T],OldMoves,NewMoves),
+			test(Move,NewMoves,Nouveau_I,Board).
+test([],_,4,_):- !.				
+
+			
