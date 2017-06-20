@@ -320,7 +320,7 @@ add_move(NbCoups,NewNbCoups,Moves,NewMoves, Board, NBoard):- getAllMoves(_,Moves
                                                             NewNbCoups is NbCoups + 2,                     % ATTENTION PUSH COUTE 2 MOVES
                                                             change_board(NewMove,Board,NBoard).
 
-add_move(NbCoups,NewNbCoups,Moves,NewMove, Board, NBoard):- getAllMoves(_,Moves,ListMove, Board),
+add_move(NbCoups,NewNbCoups,Moves,NewMove, Board, NBoard):- etAllMoves(_,Moves,ListMove, Board),
                                 														choose_move(ListMove,NewMove,Board),
                                 														NewNbCoups is NbCoups + 1,
                                 														change_board(NewMove,Board,NBoard).

@@ -4,7 +4,7 @@
 	
 % A few comments but all is explained in README of github
 
-board([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
+board([[0,0,rabbit,silver],[0,1,rabbit,silver],[4,4,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[4,5,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
 
 % get_moves signature
 % get_moves(Moves, gamestate, board).
@@ -35,6 +35,20 @@ right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1, X<8.
 % Piece2 is placed at the left of Piece1
 
 left([X1,Y1],[X2,Y2]) :-  X is X1-1, X2 = X, Y2 = Y1, X>=0.
+
+%in_game
+
+in_game(X1,Y1) :- 	X1 >= 0, 
+					X1 < 8, 
+					Y1 >= 0,
+					Y1 < 8.
+
+%align
+
+align(X1,Y1,X2,Y2,X3,Y3) :- up([X1,Y1],[X2,Y2]),up([X2,Y2],[X3,Y3]),!.
+align(X1,Y1,X2,Y2,X3,Y3) :- down([X1,Y1],[X2,Y2]),down([X2,Y2],[X3,Y3]),!.
+align(X1,Y1,X2,Y2,X3,Y3) :- right([X1,Y1],[X2,Y2]),right([X2,Y2],[X3,Y3]),!.
+align(X1,Y1,X2,Y2,X3,Y3) :- left([X1,Y1],[X2,Y2]),left([X2,Y2],[X3,Y3]),!.
 
 %neighbor of X1,Y1 
 
@@ -151,12 +165,49 @@ frozen(X1,Y1,Piece,Board) :-
 			stronger(Enemy,Piece), 
 			!.
 
+%replace
+
+replace(_, _, [], []).
+replace(O, R, [O|T], [R|T2]) :- replace(O, R, T, T2).
+replace(O, R, [H|T], [H|T2]) :- H \= O, replace(O, R, T, T2).
+
 %push & pull
 
-ok_push_pull(X1,Y1,Piece) :- 
-			enemy_neighbor(X1,Y1,Enemy,gold,Board), 
-			stronger(Piece,Enemy), 
+ok_push([X1,Y1],[X2,Y2],[X3,Y3],Board) :-			
+			element([X1,Y1,Piece,silver],Board), 
+			element([X2,Y2,Enemy,gold],Board),
+			stronger(Piece,Enemy),
+			align(X1,Y1,X2,Y2,X3,Y3),
+			in_game(X3,Y3),
+			empty(Board,X3,Y3),
+			\+frozen(X1,Y1,Piece,Board),
+			\+enemy_neighbor(X2,Y2,Enemy_neir,gold,Board), 
 			!.
+
+push([X,Y],[W,Z],Board,NBoard):-
+					ok_push([X,Y],[W,Z],[T,V],Board),
+					replace([W,Z,Enemy,gold],[T,V,Enemy,gold],Board,TmpBoard),
+					replace([X,Y,Piece,silver],[W,Z,Piece,silver],TmpBoard,NBoard),
+					!.
+
+ok_pull([X1,Y1],[X2,Y2],[X3,Y3],Board) :-
+						element([X2,Y2,Piece,silver],Board), 
+						element([X1,Y1,Enemy,gold],Board),
+						align(X1,Y1,X2,Y2,X3,Y3),
+						in_game(X3,Y3),
+						empty(Board,X3,Y3),
+						stronger(Piece,Enemy),	
+						\+frozen(X2,Y2,Piece,Board),
+						\+enemy_neighbor(X1,Y1,Enemy_neir,gold,Board), 
+						!.
+
+pull([X,Y],[W,Z],Board,NBoard):-
+						ok_pull([W,Z],[X,Y],[T,V],Board),
+						replace([X,Y,Piece,silver],[T,V,Piece,silver],Board,TmpBoard),
+						replace([W,Z,Enemy,gold],[X,Y,Enemy,gold],TmpBoard,Board),
+						!.
+					
+
 
 %usual fonction
 
@@ -167,20 +218,23 @@ element(X,[_|R]) :- element(X,R).
 
 getAllMoves([X,Y],ListMoove,OkMooves,Board):- setof([[X,Y],[W,Z]],ok_moove([[X,Y],[W,Z]],ListMoove,Board),OkMooves).
 
+%Board Update
+
+%board_update([[X,Y],[W,Z]],Board,NewBoard) :- push()
 
 %add_moves(_,4,Board):- !.
-add_moves(Moves,LM,NB,Board) :- 
+add_moves(Moves,NB,Board) :- 
 							getAllMoves([X,Y],Moves,[T|Q],Board),
 							NB1 is NB + 1,
 							append([T],Moves,LM),
-							add_moves(LM,NLM,NB1,Board)
+							add_moves(LM,NB1,Board)
 							.
-add_moves(Moves,LM,0,Board) :- 
+add_moves(Moves,0,Board) :- 
 					Moves = [],
 					getAllMoves([X,Y],Moves,[T|Q],Board),
 					NB1 = 1,
 					append([T],Moves,LM),
-					add_moves(LM,,NLM,NB1,Board).
+					add_moves(LM,NB1,Board).
 
 % default call
 
