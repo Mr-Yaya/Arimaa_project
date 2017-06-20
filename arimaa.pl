@@ -1,23 +1,7 @@
-%:- module(bot,
+:- module(bot,
       [  get_moves/3
       ]).
 	
-% A few comments but all is explained in README of github
-
-board([[0,0,rabbit,silver],[0,1,rabbit,silver],[4,4,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[4,5,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
-
-% get_moves signature
-% get_moves(Moves, gamestate, board).
-
-% Exemple of variable
-% gamestate: [side, [captured pieces] ] (e.g. [silver, [ [0,1,rabbit,silver],[0,2,horse,silver] ]) 
-
-%set_board(board) :- Board = [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]].
-
-% Call exemple:
-% get_moves(Moves, [silver, []], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
-
-% default call
 
 %position
 % Piece2 is placed on the top of Piece1
@@ -117,7 +101,7 @@ stronger(Piece1,Piece2) :- strength(Piece1,S1) , strength(Piece2,S2) , S1 > S2.
 
 % moove ok from X1,Y1 to X2,Y2
 
-ok_moove([[X, Y],[W,Z]], Moves,Board):- 
+ok_moove([[X, Y],[W,Z]],Moves,Board):- 
 					element([X,Y,Piece,silver],Board),
 					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
@@ -125,17 +109,17 @@ ok_moove([[X, Y],[W,Z]], Moves,Board):-
 					\+trap([W,Z]),
 					\+frozen(X,Y,Piece,Board),
 					\+up([X,Y],[W,Z]),
-					\+member([[X,Y],[W,Z]],Moves)
+					\+member([[W,Z],[X,Y]],Moves)
 					.
 
-ok_moove([[X, Y],[W,Z]], Moves,Board):- 
+ok_moove([[X, Y],[W,Z]],Moves,Board):- 
 					element([X,Y,Piece,silver],Board),
 					Team = sivler,
 					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
 					\+trap([W,Z]),
 					\+frozen(X,Y,Piece,Board),
-					\+member([[X,Y],[W,Z]],Moves)
+					\+member([[W,Z],[X,Y]],Moves)
 					.
 
 %ajout list
@@ -204,10 +188,9 @@ ok_pull([X1,Y1],[X2,Y2],[X3,Y3],Board) :-
 pull([X,Y],[W,Z],Board,NBoard):-
 						ok_pull([W,Z],[X,Y],[T,V],Board),
 						replace([X,Y,Piece,silver],[T,V,Piece,silver],Board,TmpBoard),
-						replace([W,Z,Enemy,gold],[X,Y,Enemy,gold],TmpBoard,Board),
+						replace([W,Z,Enemy,gold],[X,Y,Enemy,gold],TmpBoard,NBoard),
 						!.
 					
-
 
 %usual fonction
 
@@ -220,35 +203,23 @@ getAllMoves([X,Y],ListMoove,OkMooves,Board):- setof([[X,Y],[W,Z]],ok_moove([[X,Y
 
 %Board Update
 
-%board_update([[X,Y],[W,Z]],Board,NewBoard) :- push()
 
-%add_moves(_,4,Board):- !.
-add_moves(Moves,NB,Board) :- 
+%board_update([[X,Y],[W,Z]],Board,NBoard) :- push([[X,Y],[W,Z]],Board,NBoard).
+
+%board_update([[X,Y],[W,Z]],Board,NBoard) :- pull([[X,Y],[W,Z]],Board,NBoard).
+
+board_update([[X,Y],[W,Z]],Board,NBoard) :- 
+						element([X,Y,Piece,Team],Board),
+						replace([X,Y,Piece,Team],[W,Z,Piece,Team],Board,NBoard).
+
+add_moves(Moves_Final,4,_,Moves_Final).
+add_moves(Moves,NB,Board,Moves_Final) :- 
 							getAllMoves([X,Y],Moves,[T|Q],Board),
 							NB1 is NB + 1,
 							append([T],Moves,LM),
-							add_moves(LM,NB1,Board)
-							.
-add_moves(Moves,0,Board) :- 
-					Moves = [],
-					getAllMoves([X,Y],Moves,[T|Q],Board),
-					NB1 = 1,
-					append([T],Moves,LM),
-					add_moves(LM,NB1,Board).
+							board_update(T,Board,NBoard),
+							add_moves(LM,NB1,NBoard,Moves_Final).
 
 % default call
 
-get_moves(Moves, Gamestate, Board):- add_moves(Moves,Board,0),!.
-
-%test function
-
-test([],_,_,[]).
-test(Moves,OldMoves,I,Board):- 
-			I < 5,
-			getAllMoves([X,Y],Moves,[T|Q],Board),
-			Nouveau_I is I + 1,
-			append([T],OldMoves,NewMoves),
-			test(Move,NewMoves,Nouveau_I,Board).
-test([],_,4,_):- !.				
-
-			
+get_moves(Moves, Gamestate, Board):- add_moves([],0,Board,Moves).
