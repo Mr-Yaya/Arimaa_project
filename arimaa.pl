@@ -216,7 +216,7 @@ add_moves(Moves_Final,4,_,Moves_Final).
 add_moves(Moves,NB,Board,Moves_Final) :- 
 							getAllMoves([X,Y],Moves,[T|Q],Board),
 							NB1 is NB + 1,
-							append([T],Moves,LM),
+							append(Moves,[T],LM),
 							board_update(T,Board,NBoard),
 							add_moves(LM,NB1,NBoard,Moves_Final).
 
