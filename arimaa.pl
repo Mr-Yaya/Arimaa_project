@@ -6,19 +6,19 @@
 %position
 % Piece2 is placed on the top of Piece1
 
-up([X1,Y1],[X2,Y2]) :- X is X1-1, Y2 = Y1, X2 = X, X>=0.
+up([X1,Y1],[X2,Y2]) :- X is X1-1, Y2 = Y1, X2 = X, X2>=0.
 
 % Piece2 is placed below Piece1
 
-down([X1,Y1],[X2,Y2]) :-  X is X1+1, Y2 = Y1, X2 = X, X<8.
+down([X1,Y1],[X2,Y2]) :-  X is X1+1, Y2 = Y1, X2 = X, X2<8.
 
 % Piece2 is placed to the right of Piece1
 
-right([X1,Y1],[X2,Y2]) :- Y is Y1+1, X2 = X1, Y2 = Y, Y<8.
+right([X1,Y1],[X2,Y2]) :- Y is Y1+1, X2 = X1, Y2 = Y, Y2<8.
 
 % Piece2 is placed at the left of Piece1
 
-left([X1,Y1],[X2,Y2]) :-  Y is Y1-1, X2 = X1, Y2 = Y, Y>=0.
+left([X1,Y1],[X2,Y2]) :-  Y is Y1-1, X2 = X1, Y2 = Y, Y2>=0.
 
 %in_game
 
@@ -96,6 +96,9 @@ strength(Piece,2) :- dog(Piece),!.
 strength(Piece,1) :- cat(Piece),!.
 strength(Piece,0) :- rabbit(Piece),!.
 
+rabbitBackFire([X1,Y1],[X2,Y2]):- up([X1,Y1],[X2,Y2]),
+							                            rabbit(Piece).
+
 %Piece1 stronger than Piece2
 
 stronger(Piece1,Piece2) :- strength(Piece1,S1) , strength(Piece2,S2) , S1 > S2.
@@ -106,24 +109,13 @@ ok_moove([[X, Y],[W,Z]],Moves,Board):-
 					element([X,Y,Piece,silver],Board),
 					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
-					rabbit(Piece),
 					\+bad_position(W,Z,Piece,Board),
 					\+frozen(X,Y,Piece,Board),
-					\+up([X,Y],[W,Z]),
+					\+rabbitBackFire([X,Y],[W,Z]),
 					\+member([[X,Y],[W,Z]],Moves),
 					\+member([[W,Z],[X,Y]],Moves)
 					.
 
-ok_moove([[X, Y],[W,Z]],Moves,Board):- 
-					element([X,Y,Piece,silver],Board),
-					Team = silver,
-					neighbor(X,Y,W,Z),
-					empty(Board,W,Z),
-					\+bad_position(W,Z,Piece,Board),
-					\+frozen(X,Y,Piece,Board),
-					\+member([[X,Y],[W,Z]],Moves),
-					\+member([[W,Z],[X,Y]],Moves)
-					.
 
 %ajout list
 add(X,[],L1) :- L1 = [X],!.
