@@ -43,9 +43,10 @@ neighbor(X1,Y1,X2,Y2) :- right([X1,Y1],[X2,Y2]).
 
 %friendly neighbor
 
-friendly_neighbor(X,Y,Team,Board) :- 
+friendly_neighbor(X,Y,Z,W,Team,Board) :- 
 							neighbor(X,Y,Z,W) ,
-							element([Z,W,_,Team],Board),
+							element([X,Y,Piece,Team],Board),
+							element([Z,W,Piece2,Team],Board),
 							Team = silver.
 
 %enemy neighbor
@@ -106,9 +107,10 @@ ok_moove([[X, Y],[W,Z]],Moves,Board):-
 					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
 					rabbit(Piece),
-					\+trap([W,Z]),
+					\+bad_position(W,Z,Piece,Board),
 					\+frozen(X,Y,Piece,Board),
 					\+up([X,Y],[W,Z]),
+					\+member([[X,Y],[W,Z]],Moves),
 					\+member([[W,Z],[X,Y]],Moves)
 					.
 
@@ -117,8 +119,9 @@ ok_moove([[X, Y],[W,Z]],Moves,Board):-
 					Team = sivler,
 					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
-					\+trap([W,Z]),
+					\+bad_position(W,Z,Piece,Board),
 					\+frozen(X,Y,Piece,Board),
+					\+member([[X,Y],[W,Z]],Moves),
 					\+member([[W,Z],[X,Y]],Moves)
 					.
 
@@ -132,19 +135,19 @@ add(X,L,L1) :- L1 =[X|L].
 
 bad_position(X,Y,Piece,Board) :- 
 						trap([X,Y]),
-						\+friendly_neighbor(X,Y,silver,Board),!.
+						\+friendly_neighbor(X,Y,_,_,silver,Board),!.
 
 %dangerous position
 
 bad_position(X,Y,Piece,Board) :- 
-					\+friendly_neighbor(X,Y,silver,Board), 
+					\+friendly_neighbor(X,Y,_,_,silver,Board), 
 					enemy_neighbor(X,Y,Enemy,gold,Board), 
 					stronger(Enemy,Piece),!. 
 
 %frozen Piece
 
 frozen(X1,Y1,Piece,Board) :- 
-			\+friendly_neighbor(X1,Y1,silver,Board), 
+			\+friendly_neighbor(X1,Y1,_,_,usilver,Board), 
 			enemy_neighbor(X1,Y1,Enemy,gold,Board), 
 			stronger(Enemy,Piece), 
 			!.
@@ -165,7 +168,8 @@ ok_push([X1,Y1],[X2,Y2],[X3,Y3],Board) :-
 			in_game(X3,Y3),
 			empty(Board,X3,Y3),
 			\+frozen(X1,Y1,Piece,Board),
-			\+enemy_neighbor(X2,Y2,Enemy_neir,gold,Board), 
+			\+enemy_neighbor(X2,Y2,Enemy_neir,gold,Board),
+			trap([X3,Y3]),
 			!.
 
 push([X,Y],[W,Z],Board,NBoard):-
@@ -182,7 +186,9 @@ ok_pull([X1,Y1],[X2,Y2],[X3,Y3],Board) :-
 						empty(Board,X3,Y3),
 						stronger(Piece,Enemy),	
 						\+frozen(X2,Y2,Piece,Board),
-						\+enemy_neighbor(X1,Y1,Enemy_neir,gold,Board), 
+						\+enemy_neighbor(X1,Y1,Enemy_neir,gold,Board),
+						trap([X2,Y2]),
+						friendly_neighbor(X2,Y2,_,_,silver,Board), 
 						!.
 
 pull([X,Y],[W,Z],Board,NBoard):-
@@ -212,14 +218,109 @@ board_update([[X,Y],[W,Z]],Board,NBoard) :-
 						element([X,Y,Piece,Team],Board),
 						replace([X,Y,Piece,Team],[W,Z,Piece,Team],Board,NBoard).
 
-add_moves(Moves_Final,4,_,Moves_Final).
-add_moves(Moves,NB,Board,Moves_Final) :- 
-							getAllMoves([X,Y],Moves,[T|Q],Board),
-							NB1 is NB + 1,
-							append(Moves,[T],LM),
-							board_update(T,Board,NBoard),
-							add_moves(LM,NB1,NBoard,Moves_Final).
-
 % default call
 
-get_moves(Moves, Gamestate, Board):- add_moves([],0,Board,Moves).
+get_moves(Moves, Gamestate, Board):- final([],0,Board,Moves).
+
+%STRATEGY
+
+%getDist 
+
+get_dist(D,[X,Y],[W,Z]) :- DC is X-W, DR is Y-W, D is abs(DR)+abs(DC).
+
+get_dist_from_goal(D,[_,Y]) :- D is 7-Y.
+
+get_free_goal_pos([X,Y],Board) :-
+									\+element([X,7,_,_],Board),
+									Y = 7.
+
+get_dist_from_win(D,[U,V],Board) :- 	get_free_goal_pos([X,Y],Board),
+										get_dist(D,[U,V],[X,Y]).
+
+%
+
+score_move([[X,Y],[U,V]],Score,Board) :-
+										element([X,Y,rabbit,silver],Board),
+										down([X,Y],[W,Z]), Z = 7,
+										Score is 100.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,rabbit,silver],Board),
+										friendly_neighbor(U,V,T,W,Team,Board),
+										T \= X,
+										W \= Y,
+										Score is 90.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,Piece,silver],Board),
+										element([U,V,Enemy,gold],Board),
+										ok_push([X,Y],[U,V],[T,V],Board),
+										Score is 80.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,Piece,silver],Board),
+										element([U,V,Enemy,gold],Board),
+										ok_pull([U,V],[X,Y],[T,V],Board),
+										Score is 80.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,elephant,silver],Board),
+										neighbor(U,V,A,B),
+										element([A,B,_,gold],Board),
+										Score is 70.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										\+element([X,Y,rabbit,silver],Board),
+										neighbor(U,V,A,B),
+										element([A,B,_,silver],Board),
+										Score is 60.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,camel,silver],Board),
+										neighbor(U,V,A,B),
+										element([A,B,Enemy,gold],Board),
+										stronger(camel,Enemy),
+										Score is 50.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,horse,silver],Board),
+										neighbor(U,V,A,B),
+										element([A,B,Enemy,gold],Board),
+										stronger(horse,Enemy),
+										Score is 40.
+
+score_move([[X,Y],[U,V]], 0, _).
+
+add_score_to_move([[X,Y],[W,Z]], [[[X,Y],[W,Z]],Score], Board) :- score_move([[X,Y],[W,Z]],Score,Board).
+
+get_all_score([], ScoredMoves, _).
+get_all_score([T|Q], ScoredMoves, Board):- add_score_to_move(T,ScoreMove,Board),
+											get_all_score(Q,Scored,Board),
+											append(Scored,[ScoreMove],ScoredMoves).
+
+get_best_score([],M).
+get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2]) :- 
+											S>S2,
+											get_best_score(Q, [[[X,Y],[W,Z]],S]).
+
+get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2]) :- 
+											S2>=S,
+											get_best_score(Q, [[[A,B],[C,D]],S2]).
+
+
+
+choose_move(Moves,[[X,Y],[W,Z]],Board) :- 	get_all_score(Moves, ScoredMoves, Board),
+											get_best_score(ScoredMoves,[[[X,Y],[W,Z]],M]),!.
+
+add_moves(Nb,NNb,Moves,Move,Board,NBoard) :-
+							getAllMoves([X,Y],Moves,ListOkMove,Board),
+							choose_move(ListOkMove,Move,Board),
+							NB1 is NB + 1,
+							board_update(Move,Board,NBoard).
+
+final(Moves_Final,4,_,Moves_Final).
+final(Moves,NB,Board,Moves_Final) :- 
+							add_moves(NB,NB1,Moves,T,Board,NBoard),
+							append(Moves,[T],LM),
+							board_update(T,Board,NBoard),
+							final(LM,NB1,NBoard,Moves_Final).
