@@ -241,7 +241,7 @@ get_dist_from_win(D,[U,V],Board) :- 	get_free_goal_pos([X,Y],Board),
 
 score_move([[X,Y],[U,V]],Score,Board) :-
 										element([X,Y,rabbit,silver],Board),
-										down([X,Y],[W,Z]), Z = 7,
+										down([X,Y],[U,V]), V == 7,
 										Score is 100.
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
@@ -271,8 +271,9 @@ score_move([[X,Y],[U,V]],Score,Board) :-
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
 										\+element([X,Y,rabbit,silver],Board),
-										neighbor(U,V,A,B),
-										element([A,B,_,silver],Board),
+										friendly_neighbor(U,V,T,W,Team,Board),
+										T \= X,
+										W \= Y,
 										Score is 60.
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
@@ -289,6 +290,11 @@ score_move([[X,Y],[U,V]],Score,Board) :-
 										stronger(horse,Enemy),
 										Score is 40.
 
+score_move([[X,Y],[U,V]],Score,Board) :-
+										element([X,Y,rabbit,silver],Board),
+										down([X,Y],[U,V]),
+										Score is 10.
+
 score_move([[X,Y],[U,V]], 0, _).
 
 add_score_to_move([[X,Y],[W,Z]], [[[X,Y],[W,Z]],Score], Board) :- score_move([[X,Y],[W,Z]],Score,Board).
@@ -298,24 +304,26 @@ get_all_score([T|Q], ScoredMoves, Board):- add_score_to_move(T,ScoreMove,Board),
 											get_all_score(Q,Scored,Board),
 											append(Scored,[ScoreMove],ScoredMoves).
 
-get_best_score([],M).
-get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2]) :- 
+get_best_score([],M,M).
+get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2],M) :- 
 											S>S2,
-											get_best_score(Q, [[[X,Y],[W,Z]],S]).
+											get_best_score(Q, [[[X,Y],[W,Z]],S],M).
 
-get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2]) :- 
+get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2],M) :- 
 											S2>=S,
-											get_best_score(Q, [[[A,B],[C,D]],S2]).
+											get_best_score(Q, [[[A,B],[C,D]],S2],M).
+get_best_score([[[[X,Y],[U,V]],S]|Q],M):- get_best_score(Q,[[[X,Y],[U,V]],S],M).
 
 
 
 choose_move(Moves,[[X,Y],[W,Z]],Board) :- 	get_all_score(Moves, ScoredMoves, Board),
-											get_best_score(ScoredMoves,[[[X,Y],[W,Z]],M]),!.
+											get_best_score(ScoredMoves,[[[X,Y],[W,Z]],M]),
+											!.
 
 add_moves(Nb,NNb,Moves,Move,Board,NBoard) :-
 							getAllMoves([X,Y],Moves,ListOkMove,Board),
 							choose_move(ListOkMove,Move,Board),
-							NB1 is NB + 1,
+							NNb is Nb + 1,
 							board_update(Move,Board,NBoard).
 
 final(Moves_Final,4,_,Moves_Final).
