@@ -1,0 +1,24 @@
+GetAllMoves -> liste OkMoves
+
+Score décroissant :
+
+Moves des lapins :
+	- lapin peut aller en 1 move à la victoire
+	- lapin bouge si après move, il est à côté d'une pièce amie
+Move arbitraire de déglinguage :
+	- une pièce peut pull ou push une pièce ennemie sur un trap
+Moves éléphant :
+	- éléphant se place à côté d'une pièce ennemie
+	- sinon, se place à côté d'une pièce amie
+Moves chameau :
+	- chameau se place à côté d'une pièce ennemie (sauf éléphant)
+	- sinon, se place à côté d'une pièce amie
+Moves cheval :
+	- cheval se place à côté d'une pièce ennemie (sauf éléphant et chameau)
+	- sinon, se place à côté d'une pièce amie
+Moves chien :
+	- se place à côté d'une pièce amie
+Moves chat :
+	- se place à côté d'une pièce amie
+Moves restants :
+	- on fait un seul move au hasard et on passe 
