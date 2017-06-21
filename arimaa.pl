@@ -6,19 +6,19 @@
 %position
 % Piece2 is placed on the top of Piece1
 
-up([X1,Y1],[X2,Y2]) :- Y is Y1-1, X2 = X1, Y2 = Y, Y>=0.
+up([X1,Y1],[X2,Y2]) :- X is X1-1, Y2 = Y1, X2 = X, X>=0.
 
 % Piece2 is placed below Piece1
 
-down([X1,Y1],[X2,Y2]) :-  Y is Y1+1, X2 = X1, Y2 = Y, Y<8.
+down([X1,Y1],[X2,Y2]) :-  X is X1+1, Y2 = Y1, X2 = X, X<8.
 
 % Piece2 is placed to the right of Piece1
 
-right([X1,Y1],[X2,Y2]) :- X is X1+1, X2 = X, Y2 = Y1, X<8.
+right([X1,Y1],[X2,Y2]) :- Y is Y1+1, X2 = X1, Y2 = Y, Y<8.
 
 % Piece2 is placed at the left of Piece1
 
-left([X1,Y1],[X2,Y2]) :-  X is X1-1, X2 = X, Y2 = Y1, X>=0.
+left([X1,Y1],[X2,Y2]) :-  Y is Y1-1, X2 = X1, Y2 = Y, Y>=0.
 
 %in_game
 
@@ -116,7 +116,7 @@ ok_moove([[X, Y],[W,Z]],Moves,Board):-
 
 ok_moove([[X, Y],[W,Z]],Moves,Board):- 
 					element([X,Y,Piece,silver],Board),
-					Team = sivler,
+					Team = silver,
 					neighbor(X,Y,W,Z),
 					empty(Board,W,Z),
 					\+bad_position(W,Z,Piece,Board),
@@ -147,7 +147,7 @@ bad_position(X,Y,Piece,Board) :-
 %frozen Piece
 
 frozen(X1,Y1,Piece,Board) :- 
-			\+friendly_neighbor(X1,Y1,_,_,usilver,Board), 
+			\+friendly_neighbor(X1,Y1,_,_,silver,Board), 
 			enemy_neighbor(X1,Y1,Enemy,gold,Board), 
 			stronger(Enemy,Piece), 
 			!.
@@ -241,8 +241,8 @@ get_dist_from_win(D,[U,V],Board) :- 	get_free_goal_pos([X,Y],Board),
 
 score_move([[X,Y],[U,V]],Score,Board) :-
 										element([X,Y,rabbit,silver],Board),
-										down([X,Y],[U,V]), V == 7,
-										Score is 100.
+										down([X,Y],[U,V]),  U == 7,
+										Score is 5.
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
 										element([X,Y,rabbit,silver],Board),
