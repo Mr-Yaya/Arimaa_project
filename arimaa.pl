@@ -105,9 +105,13 @@ stronger(Piece1,Piece2) :- strength(Piece1,S1) , strength(Piece2,S2) , S1 > S2.
 
 % moove ok from X1,Y1 to X2,Y2
 
-ok_moove([[X, Y],[W,Z]],Moves,Board):- ok_push([X,Y],[W,Z],[A,B],Board).
+ok_moove([[X, Y],[W,Z]],Moves,Board):- 
+										%\+frozen(X,Y,Piece,Board),
+										ok_push([X,Y],[W,Z],[A,B],Board).
 
-ok_moove([[X, Y],[W,Z]],Moves,Board):- ok_pull([W,Z],[X,Y],[A,B],Board).
+ok_moove([[X, Y],[W,Z]],Moves,Board):- 
+										%\+frozen(X,Y,Piece,Board),
+										ok_pull([W,Z],[X,Y],[A,B],Board).
 
 ok_moove([[X, Y],[W,Z]],Moves,Board):- 
 					element([X,Y,Piece,silver],Board),
@@ -425,17 +429,18 @@ choose_move(Moves,[[X,Y],[W,Z]],Board) :- 	get_all_score(Moves, ScoredMoves, Boa
 
 add_move(Nb,NNb,Moves,Move,Board,NBoard):- 
 										getAllMoves([X,Y],Moves,ListOkMove, Board),
-                                		choose_move(ListOkMove,Move,Board),
-                                        ok_to_pull(Move,Board),
-                                		NNb is Nb + 2,                     % ATTENTION PULL COUTE 2 MOVES
+                                        choose_move(ListOkMove,[[A,B],[C,D]],Board),
+                                        ok_pull([C,D],[A,B],[W,Z],Board),
+                                        append([[[C,D],[A,B]]],[[[A,B],[W,Z]]],Move),
+										NNb is Nb + 2,
                                 		board_update(Move,Board,NBoard).
 
 add_move(Nb,NNb,Moves,Move,Board,NBoard):- 
 											getAllMoves([X,Y],Moves,ListOkMove, Board),
                                             choose_move(ListOkMove,[[A,B],[C,D]],Board),
-                                            isTrap([W,Z]),
-                                            ok_to_push([A,B],[C,D],[W,Z],Board),
-                                            append([[[C,D],[A,B]]],[[[A,B],[C,D]]],Move),
+                                            trap([W,Z]),
+                                            ok_push([A,B],[C,D],[W,Z],Board),
+                                            append([[[C,D],[W,Z]]],[[[A,B],[C,D]]],Move),
 											NNb is Nb + 2,                                                            
 											board_update(Move,Board,NBoard).
 
