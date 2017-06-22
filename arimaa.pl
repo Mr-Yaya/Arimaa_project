@@ -105,6 +105,10 @@ stronger(Piece1,Piece2) :- strength(Piece1,S1) , strength(Piece2,S2) , S1 > S2.
 
 % moove ok from X1,Y1 to X2,Y2
 
+ok_moove([[X, Y],[W,Z]],Moves,Board):- ok_push([X,Y],[W,Z],[A,B],Board).
+
+ok_moove([[X, Y],[W,Z]],Moves,Board):- ok_pull([W,Z],[X,Y],[A,B],Board).
+
 ok_moove([[X, Y],[W,Z]],Moves,Board):- 
 					element([X,Y,Piece,silver],Board),
 					neighbor(X,Y,W,Z),
@@ -202,9 +206,9 @@ getAllMoves([X,Y],ListMoove,OkMooves,Board):- setof([[X,Y],[W,Z]],ok_moove([[X,Y
 %Board Update
 
 
-%board_update([[X,Y],[W,Z]],Board,NBoard) :- push([[X,Y],[W,Z]],Board,NBoard).
+board_update([[X,Y],[W,Z]],Board,NBoard) :- push([X,Y],[W,Z],Board,NBoard).
 
-%board_update([[X,Y],[W,Z]],Board,NBoard) :- pull([[X,Y],[W,Z]],Board,NBoard).
+board_update([[X,Y],[W,Z]],Board,NBoard) :- pull([X,Y],[W,Z],Board,NBoard).
 
 board_update([[X,Y],[W,Z]],Board,NBoard) :- 
 						element([X,Y,Piece,Team],Board),
@@ -418,6 +422,23 @@ get_best_score([[[[X,Y],[U,V]],S]|Q],M):- get_best_score(Q,[[[X,Y],[U,V]],S],M).
 choose_move(Moves,[[X,Y],[W,Z]],Board) :- 	get_all_score(Moves, ScoredMoves, Board),
 											get_best_score(ScoredMoves,[[[X,Y],[W,Z]],M]),
 											!.
+
+add_move(Nb,NNb,Moves,Move,Board,NBoard):- 
+										getAllMoves([X,Y],Moves,ListOkMove, Board),
+                                		choose_move(ListOkMove,Move,Board),
+                                        ok_to_pull(Move,Board),
+                                		NNb is Nb + 2,                     % ATTENTION PULL COUTE 2 MOVES
+                                		board_update(Move,Board,NBoard).
+
+add_move(Nb,NNb,Moves,Move,Board,NBoard):- 
+											getAllMoves([X,Y],Moves,ListOkMove, Board),
+                                            choose_move(ListOkMove,[[A,B],[C,D]],Board),
+                                            isTrap([W,Z]),
+                                            ok_to_push([A,B],[C,D],[W,Z],Board),
+                                            append([[[C,D],[A,B]]],[[[A,B],[C,D]]],Move),
+											NNb is Nb + 2,                                                            
+											board_update(Move,Board,NBoard).
+
 
 add_moves(Nb,NNb,Moves,Move,Board,NBoard) :-
 							getAllMoves([X,Y],Moves,ListOkMove,Board),
