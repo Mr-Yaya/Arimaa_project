@@ -218,23 +218,54 @@ get_moves(Moves, Gamestate, Board):- final([],0,Board,Moves).
 
 %getDist 
 
-get_dist(D,[X,Y],[W,Z]) :- DC is X-W, DR is Y-W, D is abs(DR)+abs(DC).
+get_dist_x(D,[X,Y],[W,Z]) :- DC is X-W, D is abs(DC).
 
-get_dist_from_goal(D,[_,Y]) :- D is 7-Y.
+get_dist_y(D,[X,Y],[W,Z]) :- DR is Y-Z, D is abs(DR).
 
-get_free_goal_pos([X,Y],Board) :-
-									\+element([X,7,_,_],Board),
-									Y = 7.
+get_free_goal_pos([X,Y],Board) :- \+element([7,Y,_,_],Board).
 
-get_dist_from_win(D,[U,V],Board) :- 	get_free_goal_pos([X,Y],Board),
-										get_dist(D,[U,V],[X,Y]).
+get_dist_from_win(D,[X,Y],Board) :- 	get_free_goal_pos([X,Y],Board),
+										get_dist_x(D,[X,Y],[7,Y]).
+
+
+
+nth(M, 0, [M | _]).
+nth(M, N, [_ | Moves]) :- N1 is N - 1, nth(M, N1, Moves).
+
+one_random_move([], Moves) :- length(Moves,L), L = 0. % , print("ERROR : No move to pick at one_random_move").
+one_random_move(M, Moves) :- length(Moves,L), random(0, L, N), nth(M, N, Moves).
+
 
 %
 
 score_move([[X,Y],[U,V]],Score,Board) :-
 										element([X,Y,rabbit,silver],Board),
 										down([X,Y],[U,V]),  U == 7,
-										Score is 5.
+										Score is 100.
+
+score_move([[X,Y],[U,V]],Score,Board) :-
+										element([X,Y,rabbit,silver],Board),
+										get_dist_from_win(D,[X,Y],Board),
+										D >= 2, D =< 4,
+										down([X,Y],[U,V]), 
+										Score is 95.
+
+score_move([[X,Y],[U,V]],Score,Board) :-
+										\+element([X,Y,rabbit,silver],Board),
+										neighbor(U,V,A,B),
+										element([A,B,rabbit,gold],Board),
+										A >= 1, A =< 2,
+										Score is 94.
+
+score_move([[X,Y],[U,V]],Score,Board) :-
+										\+element([X,Y,rabbit,silver],Board),
+										element([A,B,rabbit,gold],Board),
+										A >= 1, A =< 2,
+										get_dist_x(D1,[X,Y],[A,B]),
+										D1 >= 0, D1 =< 2,
+										get_dist_y(D2,[X,Y],[A,B]),
+										D2 >= 0, D2 =< 2,
+										Score is 92.
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
 										element([X,Y,rabbit,silver],Board),
@@ -262,6 +293,23 @@ score_move([[X,Y],[U,V]],Score,Board) :-
 										Score is 70.
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,elephant,silver],Board),
+										Y == V,
+										element([A,Y,_,gold],Board),
+										get_dist_x(D,[X,Y],[A,Y]),
+										D >= 2, D =< 3,
+										Score is 66.
+
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,elephant,silver],Board),
+										X == U,
+										element([X,B,_,gold],Board),
+										get_dist_y(D,[X,Y],[X,B]),
+										D >= 2, D =< 3,
+										Score is 64.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
 										\+element([X,Y,rabbit,silver],Board),
 										friendly_neighbor(U,V,T,W,Team,Board),
 										T \= X,
@@ -276,11 +324,64 @@ score_move([[X,Y],[U,V]],Score,Board) :-
 										Score is 50.
 
 score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,camel,silver],Board),
+										Y == V,
+										element([A,Y,Enemy,gold],Board),
+										stronger(camel,Enemy),
+										get_dist_x(D,[X,Y],[A,Y]),
+										D >= 2, D =< 3,
+										Score is 46.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,camel,silver],Board),
+										X == U,
+										element([X,B,Enemy,gold],Board),
+										stronger(camel,Enemy),
+										get_dist_y(D,[X,Y],[X,B]),
+										D >= 2, D =< 3,
+										Score is 44.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
 										element([X,Y,horse,silver],Board),
 										neighbor(U,V,A,B),
 										element([A,B,Enemy,gold],Board),
 										stronger(horse,Enemy),
 										Score is 40.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,horse,silver],Board),
+										Y == V,
+										element([A,Y,Enemy,gold],Board),
+										stronger(horse,Enemy),
+										get_dist_x(D,[X,Y],[A,Y]),
+										D == 2, 
+										Score is 36.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										element([X,Y,horse,silver],Board),
+										X == U,
+										element([X,B,Enemy,gold],Board),
+										stronger(horse,Enemy),
+										get_dist_y(D,[X,Y],[X,B]),
+										D == 2, 
+										Score is 34.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										\+element([X,Y,rabbit,silver],Board),
+										Y == V,
+										element([A,Y,_,silver],Board),
+										get_dist_x(D,[X,Y],[A,Y]),
+										D == 2, 
+										Score is 30.
+
+score_move([[X,Y],[U,V]],Score,Board) :- 
+										\+element([X,Y,rabbit,silver],Board),
+										X == U,
+										element([X,B,_,silver],Board),
+										get_dist_y(D,[X,Y],[X,B]),
+										D == 2, 
+										Score is 20.
+
 
 score_move([[X,Y],[U,V]],Score,Board) :-
 										element([X,Y,rabbit,silver],Board),
@@ -304,6 +405,12 @@ get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2],M) :-
 get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2],M) :- 
 											S2>=S,
 											get_best_score(Q, [[[A,B],[C,D]],S2],M).
+get_best_score([[[[X,Y],[W,Z]],S]|Q],[[[A,B],[C,D]],S2],M) :- 
+											S2==S,
+											S2==0,
+											append([[[X,Y],[W,Z]],S],[[[A,B],[C,D]],S2],RandomCrapMoves),
+											one_random_move(Crap, RandomCrapMoves),
+											get_best_score(Q,Crap,M).
 get_best_score([[[[X,Y],[U,V]],S]|Q],M):- get_best_score(Q,[[[X,Y],[U,V]],S],M).
 
 
